@@ -9,8 +9,10 @@ import { GeoJsonService } from './geojson.service';
 
 const shpFileInput = document.querySelector('#shpFile');
 const colorInput = document.querySelector('#shpColor');
+const titleInput = document.querySelector('#title');
 const progressBar = document.querySelector('.progress-bar');
 let mapGeoJson;
+let titleDiv;
 
 const leafletMap = L.map('map').setView([40.5698109, 20.6563387], 7);
 
@@ -23,6 +25,16 @@ L.tileLayer(
 )
     .addTo(leafletMap);
 
+const legend = L.control({ position: 'topright' });
+
+legend.onAdd = () => {
+    titleDiv = L.DomUtil.create('div', 'display-4');
+    titleDiv.innerText = titleInput.value;
+
+    return titleDiv;
+};
+
+legend.addTo(leafletMap);
 L.control.scale().addTo(leafletMap);
 
 shpFileInput.addEventListener('input', () => {
@@ -36,6 +48,8 @@ shpFileInput.addEventListener('input', () => {
 });
 
 colorInput.addEventListener('change', () => mapGeoJson.setStyle({ color: colorInput.value }));
+
+titleInput.addEventListener('input', () => titleDiv.innerText = titleInput.value);
 
 function handleZipFile(file) {
     const reader = new FileReader();
