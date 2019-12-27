@@ -1,36 +1,32 @@
-import { Map, View } from 'ol';
-import TileLayer from 'ol/layer/Tile';
-import OSM from 'ol/source/OSM';
-import shp from 'shpjs';
 import 'bootstrap';
 import 'leaflet';
 import 'ol/ol.css';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'leaflet/dist/leaflet.css';
 
+import * as L from 'leaflet';
+
 import { GeoJsonService } from './geojson.service';
 
 const documentFile = document.querySelector('#shpFile');
 
-const map = new Map({
-    target: 'map',
-    layers: [
-        new TileLayer({
-            source: new OSM()
-        })
-    ],
-    view: new View({
-        center: [0, 0],
-        zoom: 0
-    })
-});
+const leafletMap = L.map('map').setView([40.5698109, 20.6563387], 7);
+
+L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {
+        maxZoom: 18,
+        attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+    }
+)
+    .addTo(leafletMap);
+
+L.control.scale().addTo(leafletMap);
 
 documentFile.addEventListener('input', () => {
-    console.log(documentFile.files);
-
     if (documentFile.files.length > 0) {
         const file = documentFile.files[0];
-        console.log(file.type);
+
         if (file.name.endsWith('.zip')) {
             handleZipFile(file);
         }
@@ -43,8 +39,17 @@ function handleZipFile(file) {
         if (reader.readyState !== FileReader.DONE || reader.error) {
             return;
         } else {
-            new GeoJsonService().data(reader.result);
+            new GeoJsonService().data(reader.result)
+                .then(geoJson => displayGeoJson(geoJson, leafletMap));
         }
     };
     reader.readAsArrayBuffer(file);
+}
+
+function displayGeoJson(geoJson, map) {
+    console.log(geoJson);
+
+    const mapGeoJson = L.geoJSON(geoJson).addTo(map);
+
+    map.fitBounds(mapGeoJson.getBounds());
 }
