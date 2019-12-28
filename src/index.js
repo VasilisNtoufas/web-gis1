@@ -6,11 +6,11 @@ import 'leaflet/dist/leaflet.css';
 import * as L from 'leaflet';
 
 import { GeoJsonService } from './geojson.service';
+import { setProgress } from './progress.service';
 
 const shpFileInput = document.querySelector('#shpFile');
 const colorInput = document.querySelector('#shpColor');
 const titleInput = document.querySelector('#title');
-const progressBar = document.querySelector('.progress-bar');
 let mapGeoJson;
 
 const leafletMap = L.map('map').setView([40.5698109, 20.6563387], 7);
@@ -47,12 +47,8 @@ function handleZipFile(file) {
                 .then(geoJson => displayGeoJson(geoJson, leafletMap));
         }
     };
-    reader.addEventListener('progress', progressHandler);
+    reader.addEventListener('progress', event => setProgress(event.loaded, event.total));
     reader.readAsArrayBuffer(file);
-}
-
-function progressHandler(event) {
-    setProgress(event.loaded, event.total);
 }
 
 function displayGeoJson(geoJson, map) {
@@ -63,12 +59,6 @@ function displayGeoJson(geoJson, map) {
     mapGeoJson = L.geoJSON(geoJson, { style: () => ({ color: colorInput.value }) }).addTo(map);
 
     map.fitBounds(mapGeoJson.getBounds());
-}
-
-function setProgress(current, total = 100) {
-    progressBar.setAttribute('aria-maxvalue', current);
-    progressBar.setAttribute('aria-nowvalue', total);
-    progressBar.style.width = `${current * 100 / total}%`;
 }
 
 function setupTitle(map) {
