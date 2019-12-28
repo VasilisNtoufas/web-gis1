@@ -12,7 +12,6 @@ const colorInput = document.querySelector('#shpColor');
 const titleInput = document.querySelector('#title');
 const progressBar = document.querySelector('.progress-bar');
 let mapGeoJson;
-let titleDiv;
 
 const leafletMap = L.map('map').setView([40.5698109, 20.6563387], 7);
 
@@ -25,30 +24,19 @@ L.tileLayer(
 )
     .addTo(leafletMap);
 
-const legend = L.control({ position: 'topright' });
-
-legend.onAdd = () => {
-    titleDiv = L.DomUtil.create('div', 'display-4');
-    titleDiv.innerText = titleInput.value;
-
-    return titleDiv;
-};
-
-legend.addTo(leafletMap);
+const titleDiv = setupTitle(leafletMap);
 L.control.scale().addTo(leafletMap);
 
 shpFileInput.addEventListener('input', () => {
-    if (shpFileInput.files.length > 0) {
-        const file = shpFileInput.files[0];
-
-        if (file.name.endsWith('.zip')) {
-            handleZipFile(file);
-        }
+    if (shpFileInput.files.length > 0 && shpFileInput.files[0].name.endsWith('.zip')) {
+        handleZipFile(shpFileInput.files[0]);
+        shpFileInput.classList.remove('is-invalid');
+    } else {
+        shpFileInput.classList.add('is-invalid');
     }
 });
 
 colorInput.addEventListener('change', () => mapGeoJson.setStyle({ color: colorInput.value }));
-
 titleInput.addEventListener('input', () => titleDiv.innerText = titleInput.value);
 
 function handleZipFile(file) {
@@ -81,4 +69,21 @@ function setProgress(current, total = 100) {
     progressBar.setAttribute('aria-maxvalue', current);
     progressBar.setAttribute('aria-nowvalue', total);
     progressBar.style.width = `${current * 100 / total}%`;
+}
+
+function setupTitle(map) {
+    const legend = L.control();
+    let div;
+
+    legend.onAdd = () => {
+        div = L.DomUtil.create('div', 'display-4 w-25 float-none mx-auto');
+        div.innerText = titleInput.value;
+
+        return div;
+    };
+
+    legend.addTo(map);
+    legend.getContainer().parentElement.classList.add('text-center', 'w-100');
+
+    return div;
 }
