@@ -22,9 +22,10 @@
             aria-valuemax="100"
         ></div>
     </div>
-    <div class="container d-print-none">
+    <div class="container-fluid">
         <div class="row">
-            <div class="col">
+            <div class="col-sm-3 d-print-none">
+                <h3>Options</h3>
                 <div class="form-group">
                     <label for="shpFile">SHP file</label>
                     <input
@@ -35,8 +36,6 @@
                     >
                     <div class="invalid-feedback">Please provide an SHP zip file.</div>
                 </div>
-            </div>
-            <div class="col">
                 <div class="form-group">
                     <label for="color">Color</label>
                     <input
@@ -46,8 +45,6 @@
                         class="form-control"
                     >
                 </div>
-            </div>
-            <div class="col">
                 <div class="form-group">
                     <label for="title">Title</label>
                     <input
@@ -57,12 +54,11 @@
                     >
                 </div>
             </div>
+            <div class="col-sm-9">
+                <div id="map"></div>
+            </div>
         </div>
     </div>
-    <div
-        id="map"
-        class="w-100"
-    ></div>
 
     <script src="./index.js"></script>
 </body>
