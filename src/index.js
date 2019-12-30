@@ -12,6 +12,7 @@ import { setProgress } from './progress.service';
 const shpFileInput = document.querySelector('#shpFile');
 const colorInput = document.querySelector('#shpColor');
 const titleInput = document.querySelector('#title');
+const titleSizeInput = document.querySelector('#titleSize');
 let mapGeoJson;
 
 const leafletMap = L.map('map').setView([40.5698109, 20.6563387], 7);
@@ -42,6 +43,7 @@ shpFileInput.addEventListener('input', () => {
 
 colorInput.addEventListener('change', () => mapGeoJson.setStyle({ color: colorInput.value }));
 titleInput.addEventListener('input', () => titleDiv.innerText = titleInput.value);
+titleSizeInput.addEventListener('input', () => titleDiv.style.fontSize = `${titleSizeInput.value}px`);
 
 function handleZipFile(file) {
     const reader = new FileReader();
@@ -70,8 +72,9 @@ function setupTitle(map) {
     let div;
 
     legend.onAdd = () => {
-        div = L.DomUtil.create('div', 'display-4 w-25 float-none mx-auto');
+        div = L.DomUtil.create('div', 'w-25 float-none mx-auto');
         div.innerText = titleInput.value;
+        div.style.fontSize = `${titleSizeInput.value}px`;
 
         return div;
     };

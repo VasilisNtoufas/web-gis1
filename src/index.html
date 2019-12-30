@@ -45,14 +45,28 @@
                         class="form-control"
                     >
                 </div>
-                <div class="form-group">
-                    <label for="title">Title</label>
-                    <input
-                        type="text"
-                        id="title"
-                        class="form-control"
-                    >
-                </div>
+                <fieldset>
+                    <legend>Title</legend>
+                    <div class="form-group">
+                        <label for="title">Text</label>
+                        <input
+                            type="text"
+                            id="title"
+                            class="form-control"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="titleSize">Size</label>
+                        <input
+                            type="range"
+                            id="titleSize"
+                            min="30"
+                            max="80"
+                            value="55"
+                            class="form-control"
+                        >
+                    </div>
+                </fieldset>
             </div>
             <div class="col-sm-9">
                 <div id="map"></div>
