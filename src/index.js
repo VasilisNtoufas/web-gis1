@@ -13,7 +13,7 @@ const shpFileInput = document.querySelector('#shpFile');
 const colorInput = document.querySelector('#shpColor');
 const titleInput = document.querySelector('#title');
 const titleSizeInput = document.querySelector('#titleSize');
-let mapGeoJson;
+let geoJsonLayer;
 
 const leafletMap = L.map('map').setView([40.5698109, 20.6563387], 7);
 
@@ -40,8 +40,7 @@ shpFileInput.addEventListener('input', () => {
         shpFileInput.classList.add('is-invalid');
     }
 });
-
-colorInput.addEventListener('change', () => mapGeoJson.setStyle({ color: colorInput.value }));
+colorInput.addEventListener('input', () => geoJsonLayer.setStyle({ color: colorInput.value }));
 titleInput.addEventListener('input', () => titleDiv.innerText = titleInput.value);
 titleSizeInput.addEventListener('input', () => titleDiv.style.fontSize = `${titleSizeInput.value}px`);
 
@@ -50,7 +49,7 @@ function handleZipFile(file) {
     reader.onload = () => {
         if (reader.readyState === FileReader.DONE && !reader.error) {
             new GeoJsonService().data(reader.result)
-                .then(geoJson => displayGeoJson(geoJson, leafletMap));
+                .then(geoJson => geoJsonLayer = displayGeoJson(geoJson, leafletMap));
         }
     };
     reader.addEventListener('progress', event => setProgress(event.loaded, event.total));
@@ -62,9 +61,14 @@ function displayGeoJson(geoJson, map) {
 
     console.log(geoJson);
 
-    mapGeoJson = L.geoJSON(geoJson, { style: () => ({ color: colorInput.value }) }).addTo(map);
+    const mapGeoJson = L.geoJSON(geoJson, { style: () => ({ color: colorInput.value }) })
+        .bindPopup(layer => `<dl>${Object.entries(layer.feature.properties)
+            .map(([key, value]) => `<dt>${key}</dt><dd>${value}</dd>`)}</dl>`)
+        .addTo(map);
 
     map.fitBounds(mapGeoJson.getBounds());
+
+    return mapGeoJson;
 }
 
 function setupTitle(map) {
@@ -86,7 +90,6 @@ function setupTitle(map) {
 }
 
 function onMapClick(e) {
-    console.log(e.latlng);
     const popup = L.popup();
     const button = L.DomUtil.create('button', 'btn btn-primary btn-sm');
     button.textContent = 'Set marker';
