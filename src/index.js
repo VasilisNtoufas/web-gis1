@@ -1,9 +1,10 @@
 import 'bootstrap';
-import 'leaflet';
 import 'bootstrap/dist/css/bootstrap.css';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 
 import * as L from 'leaflet';
+import * as LC from 'leaflet-defaulticon-compatibility';
 
 import { GeoJsonService } from './geojson.service';
 import { setProgress } from './progress.service';
@@ -26,6 +27,9 @@ L.tileLayer(
 
 const titleDiv = setupTitle(leafletMap);
 L.control.scale().addTo(leafletMap);
+
+leafletMap.on('click', onMapClick);
+
 
 shpFileInput.addEventListener('input', () => {
     if (shpFileInput.files.length > 0 && shpFileInput.files[0].name.endsWith('.zip')) {
@@ -76,4 +80,26 @@ function setupTitle(map) {
     legend.getContainer().parentElement.classList.add('text-center', 'w-100');
 
     return div;
+}
+
+function onMapClick(e) {
+    console.log(e.latlng);
+    const popup = L.popup();
+    const button = L.DomUtil.create('button', 'btn btn-primary btn-sm');
+    button.textContent = 'Set marker';
+    button.onclick = () => {
+        const marker = L.marker(e.latlng).addTo(leafletMap);
+        popup.remove();
+
+        const deleteMarkerButton = L.DomUtil.create('button', 'btn btn-primary btn-sm');
+        deleteMarkerButton.textContent = 'Remove';
+        deleteMarkerButton.onclick = () => marker.remove();
+
+        marker.bindPopup(deleteMarkerButton);
+        marker.onclick = () => marker.openPopup();
+    };
+
+    popup.setLatLng(e.latlng)
+        .setContent(button)
+        .openOn(leafletMap);
 }
