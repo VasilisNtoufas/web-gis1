@@ -7,6 +7,7 @@ import * as L from 'leaflet';
 import * as LC from 'leaflet-defaulticon-compatibility';
 
 import { GeoJsonService } from './geojson.service';
+import { createMarkerButton, createTextButton } from './marker';
 import { setProgress } from './progress.service';
 
 const shpFileInput = document.querySelector('#shpFile');
@@ -30,7 +31,6 @@ const titleDiv = setupTitle(leafletMap);
 L.control.scale().addTo(leafletMap);
 
 leafletMap.on('click', onMapClick);
-
 
 shpFileInput.addEventListener('input', () => {
     if (shpFileInput.files.length > 0 && shpFileInput.files[0].name.endsWith('.zip')) {
@@ -91,21 +91,11 @@ function setupTitle(map) {
 
 function onMapClick(e) {
     const popup = L.popup();
-    const button = L.DomUtil.create('button', 'btn btn-primary btn-sm');
-    button.textContent = 'Set marker';
-    button.onclick = () => {
-        const marker = L.marker(e.latlng).addTo(leafletMap);
-        popup.remove();
-
-        const deleteMarkerButton = L.DomUtil.create('button', 'btn btn-primary btn-sm');
-        deleteMarkerButton.textContent = 'Remove';
-        deleteMarkerButton.onclick = () => marker.remove();
-
-        marker.bindPopup(deleteMarkerButton);
-        marker.onclick = () => marker.openPopup();
-    };
+    const popupContent = L.DomUtil.create('div');
+    createMarkerButton(leafletMap, popupContent);
+    createTextButton(leafletMap, popupContent, popup, e.latlng);
 
     popup.setLatLng(e.latlng)
-        .setContent(button)
+        .setContent(popupContent)
         .openOn(leafletMap);
 }
