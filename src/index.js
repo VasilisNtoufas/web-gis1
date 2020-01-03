@@ -8,6 +8,7 @@ import * as LC from 'leaflet-defaulticon-compatibility';
 
 import { GeoJsonService } from './geojson.service';
 import { createMarkerButton, createTextButton } from './marker';
+import north from './north.png';
 import { setProgress } from './progress.service';
 
 const shpFileInput = document.querySelector('#shpFile');
@@ -28,6 +29,7 @@ L.tileLayer(
     .addTo(leafletMap);
 
 const titleDiv = setupTitle(leafletMap);
+setupNorth(leafletMap);
 L.control.scale().addTo(leafletMap);
 
 leafletMap.on('click', onMapClick);
@@ -87,6 +89,23 @@ function setupTitle(map) {
     legend.getContainer().parentElement.classList.add('text-center', 'w-100');
 
     return div;
+}
+
+function setupNorth(map) {
+    const legend = L.control();
+    let img;
+
+    legend.onAdd = () => {
+        img = L.DomUtil.create('img');
+        img.style.width = '150px';
+        img.setAttribute('src', north);
+
+        return img;
+    };
+
+    legend.addTo(map);
+
+    return img;
 }
 
 function onMapClick(e) {
