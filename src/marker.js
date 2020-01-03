@@ -25,12 +25,13 @@ export function createTextButton(leafletMap, parent, popup, latlng) {
     textMarkerForm.addEventListener('submit', e => {
       e.preventDefault();
       const markerText = document.querySelector('#markerText');
-      const icon = L.divIcon({ html: markerText.value, className: 'h3 w-100 h-100' });
+      const markerTextSize = document.querySelector('#markerTextSize');
+      const icon = L.divIcon({ html: markerText.value, className: `w-100 h-100 h${7 - markerTextSize.value}` });
       const marker = L.marker(latlng, { icon }).addTo(leafletMap);
       addDeleteToMarker(marker);
       $('#newTextModal').modal('hide');
       popup.remove();
-    })
+    });
   };
 
   return addTextButton;
