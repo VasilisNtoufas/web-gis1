@@ -1,11 +1,11 @@
 import $ from 'jquery';
 import * as L from 'leaflet';
 
-export function createMarkerButton(leafletMap, parent) {
+export function createMarkerButton(leafletMap, parent, popup, latlng) {
   const addMarkerButton = L.DomUtil.create('button', 'btn btn-primary btn-sm mr-2', parent);
   addMarkerButton.textContent = 'Set marker';
   addMarkerButton.onclick = () => {
-    const marker = L.marker(e.latlng).addTo(leafletMap);
+    const marker = L.marker(latlng).addTo(leafletMap);
     popup.remove();
     addDeleteToMarker(marker);
   };
@@ -21,8 +21,7 @@ export function createTextButton(leafletMap, parent, popup, latlng) {
       .modal('show')
       .on('hide.bs.modal', () => popup.remove());
 
-    const textMarkerForm = document.querySelector('#textMarkerForm');
-    textMarkerForm.addEventListener('submit', e => {
+    function submitHandler(e) {
       e.preventDefault();
       const markerText = document.querySelector('#markerText');
       const markerTextSize = document.querySelector('#markerTextSize');
@@ -31,7 +30,11 @@ export function createTextButton(leafletMap, parent, popup, latlng) {
       addDeleteToMarker(marker);
       $('#newTextModal').modal('hide');
       popup.remove();
-    });
+      textMarkerForm.removeEventListener('submit', submitHandler);
+    }
+
+    const textMarkerForm = document.querySelector('#textMarkerForm');
+    textMarkerForm.addEventListener('submit', submitHandler);
   };
 
   return addTextButton;
