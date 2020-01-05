@@ -111,7 +111,7 @@ function setupNorth(map) {
 function onMapClick(e) {
     const popup = L.popup();
     const popupContent = L.DomUtil.create('div');
-    createMarkerButton(leafletMap, popupContent);
+    createMarkerButton(leafletMap, popupContent, popup, e.latlng);
     createTextButton(leafletMap, popupContent, popup, e.latlng);
 
     popup.setLatLng(e.latlng)
