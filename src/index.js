@@ -7,6 +7,7 @@ import * as L from 'leaflet';
 import * as LC from 'leaflet-defaulticon-compatibility';
 
 import { GeoJsonService } from './geojson.service';
+import { Legend } from './legend';
 import { createMarkerButton, createTextButton } from './marker';
 import north from './north.png';
 import { setProgress } from './progress.service';
@@ -30,6 +31,7 @@ L.tileLayer(
 
 const titleDiv = setupTitle(leafletMap);
 setupNorth(leafletMap);
+const legend = new Legend(leafletMap);
 L.control.scale().addTo(leafletMap);
 
 leafletMap.on('click', onMapClick);
@@ -51,14 +53,14 @@ function handleZipFile(file) {
     reader.onload = () => {
         if (reader.readyState === FileReader.DONE && !reader.error) {
             new GeoJsonService().data(reader.result)
-                .then(geoJson => geoJsonLayer = displayGeoJson(geoJson, leafletMap));
+                .then(geoJson => geoJsonLayer = displayGeoJson(geoJson, file.name.split('.')[0], leafletMap));
         }
     };
     reader.addEventListener('progress', event => setProgress(event.loaded, event.total));
     reader.readAsArrayBuffer(file);
 }
 
-function displayGeoJson(geoJson, map) {
+function displayGeoJson(geoJson, name, map) {
     setProgress(100);
 
     console.log(geoJson);
@@ -70,14 +72,16 @@ function displayGeoJson(geoJson, map) {
 
     map.fitBounds(mapGeoJson.getBounds());
 
+    legend.addLegends([{ color: colorInput.value, text: name }]);
+
     return mapGeoJson;
 }
 
 function setupTitle(map) {
-    const legend = L.control();
+    const titleControl = L.control();
     let div;
 
-    legend.onAdd = () => {
+    titleControl.onAdd = () => {
         div = L.DomUtil.create('div', 'w-25 float-none mx-auto');
         div.innerText = titleInput.value;
         div.style.fontSize = `${titleSizeInput.value}px`;
@@ -85,17 +89,17 @@ function setupTitle(map) {
         return div;
     };
 
-    legend.addTo(map);
-    legend.getContainer().parentElement.classList.add('text-center', 'w-100');
+    titleControl.addTo(map);
+    titleControl.getContainer().parentElement.classList.add('text-center', 'w-100');
 
     return div;
 }
 
 function setupNorth(map) {
-    const legend = L.control();
+    const northControl = L.control();
     let img;
 
-    legend.onAdd = () => {
+    northControl.onAdd = () => {
         img = L.DomUtil.create('img');
         img.style.width = '150px';
         img.setAttribute('src', north);
@@ -103,7 +107,7 @@ function setupNorth(map) {
         return img;
     };
 
-    legend.addTo(map);
+    northControl.addTo(map);
 
     return img;
 }
