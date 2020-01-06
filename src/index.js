@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
 
+import $ from 'jquery';
 import * as L from 'leaflet';
 import * as LC from 'leaflet-defaulticon-compatibility';
 
@@ -12,11 +13,12 @@ import { createMarkerButton, createTextButton } from './marker';
 import north from './north.png';
 import { setProgress } from './progress.service';
 
+const shpForm = document.querySelector('#shpForm');
 const shpFileInput = document.querySelector('#shpFile');
+const shpFileNameInput = document.querySelector('#shpTitle');
 const colorInput = document.querySelector('#shpColor');
 const titleInput = document.querySelector('#title');
 const titleSizeInput = document.querySelector('#titleSize');
-let geoJsonLayer;
 
 const leafletMap = L.map('map').setView([40.5698109, 20.6563387], 7);
 
@@ -36,24 +38,31 @@ L.control.scale().addTo(leafletMap);
 
 leafletMap.on('click', onMapClick);
 
-shpFileInput.addEventListener('input', () => {
+titleInput.addEventListener('input', () => titleDiv.innerText = titleInput.value);
+titleSizeInput.addEventListener('input', () => titleDiv.style.fontSize = `${titleSizeInput.value}px`);
+shpForm.addEventListener('submit', onShpFormSubmit);
+
+function onShpFormSubmit(e) {
+    e.preventDefault();
+    $('#newFileModal').modal('hide');
+
     if (shpFileInput.files.length > 0 && shpFileInput.files[0].name.endsWith('.zip')) {
-        handleZipFile(shpFileInput.files[0]);
+        handleZipFile(shpFileInput.files[0], geoJsonLayer => geoJsonLayer.setStyle({ color: colorInput.value }));
         shpFileInput.classList.remove('is-invalid');
     } else {
         shpFileInput.classList.add('is-invalid');
     }
-});
-colorInput.addEventListener('input', () => geoJsonLayer.setStyle({ color: colorInput.value }));
-titleInput.addEventListener('input', () => titleDiv.innerText = titleInput.value);
-titleSizeInput.addEventListener('input', () => titleDiv.style.fontSize = `${titleSizeInput.value}px`);
 
-function handleZipFile(file) {
+    shpForm.removeEventListener('submit', onShpFormSubmit);
+}
+
+function handleZipFile(file, callback) {
     const reader = new FileReader();
     reader.onload = () => {
         if (reader.readyState === FileReader.DONE && !reader.error) {
             new GeoJsonService().data(reader.result)
-                .then(geoJson => geoJsonLayer = displayGeoJson(geoJson, file.name.split('.')[0], leafletMap));
+                .then(geoJson => geoJsonLayer = displayGeoJson(geoJson, shpFileNameInput.value || file.name.split('.')[0], leafletMap))
+                .then(callback);
         }
     };
     reader.addEventListener('progress', event => setProgress(event.loaded, event.total));
