@@ -10,7 +10,18 @@ export class Legend {
   }
 
   addLegends(legendValues) {
-    legendValues.forEach(value => L.DomUtil.create('li', null, this.legend).innerHTML = `<i style="background-color: ${value.color}"></i> ${value.text}`);
+    legendValues.forEach(value => {
+      const li = L.DomUtil.create('li', null, this.legend);
+      li.innerHTML = `<span style="cursor: pointer"><i style="background-color: ${value.color}"></i> ${value.text}</span>`;
+      li.onclick = e => {
+        e.stopPropagation();
+        li.classList.toggle('text-muted');
+
+        if (value.onClick) {
+          value.onClick();
+        }
+      };
+    });
 
     if (!this.legendControl.getContainer()) {
       this.legendControl.addTo(this.map);

@@ -89,7 +89,11 @@ export class MapService {
             .addTo(this.leafletMap);
 
         this.leafletMap.fitBounds(mapGeoJson.getBounds());
-        this.legend.addLegends([{ color: legend.color, text: legend.text }]);
+        this.legend.addLegends([{
+            color: legend.color,
+            text: legend.text,
+            onClick: () => this.leafletMap.hasLayer(mapGeoJson) ? mapGeoJson.remove() : mapGeoJson.addTo(this.leafletMap)
+        }]);
         mapGeoJson.setStyle({ color: legend.color })
 
         return mapGeoJson;
