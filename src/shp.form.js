@@ -1,4 +1,3 @@
-import * as L from 'leaflet';
 import $ from 'jquery';
 
 import { GeoJsonService } from './geojson.service';
@@ -22,7 +21,7 @@ export class ShpForm {
 
         if (file && file.name.endsWith('.zip')) {
             $('#newFileModal').modal('hide');
-            this.handleZipFile(file, geoJsonLayer => geoJsonLayer.setStyle({ color: this.colorInput.value }));
+            this.handleZipFile(file);
             this.shpFileInput.classList.remove('is-invalid');
         } else {
             this.shpFileInput.classList.add('is-invalid');
@@ -31,13 +30,12 @@ export class ShpForm {
         this.shpForm.removeEventListener('submit', this.submitHandler);
     }
 
-    handleZipFile(file, callback) {
+    handleZipFile(file) {
         const reader = new FileReader();
         reader.onload = () => {
             if (reader.readyState === FileReader.DONE && !reader.error) {
                 new GeoJsonService().data(reader.result)
-                    .then(geoJson => geoJsonLayer = this.displayGeoJson(geoJson, this.shpFileNameInput.value || file.name.split('.')[0]))
-                    .then(callback);
+                    .then(geoJson => geoJsonLayer = this.displayGeoJson(geoJson, this.shpFileNameInput.value || file.name.split('.')[0]));
             }
         };
         reader.addEventListener('progress', event => setProgress(event.loaded, event.total));
@@ -48,16 +46,8 @@ export class ShpForm {
         setProgress(100);
 
         console.log(geoJson);
-
-        const mapGeoJson = L.geoJSON(geoJson, { style: () => ({ color: this.colorInput.value }) })
-            .bindPopup(layer => `<dl>${Object.entries(layer.feature.properties)
-                .map(([key, value]) => `<dt>${key}</dt><dd>${value}</dd>`)}</dl>`)
-            .addTo(this.mapService.leafletMap);
-
-        this.mapService.leafletMap.fitBounds(mapGeoJson.getBounds());
-        this.mapService.legend.addLegends([{ color: this.colorInput.value, text: name }]);
-
-        return mapGeoJson;
+        
+        this.mapService.loadGeoJson(geoJson, {text: name, color: this.colorInput.value});
     }
 
 }

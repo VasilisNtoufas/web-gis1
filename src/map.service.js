@@ -66,7 +66,7 @@ export class MapService {
     updateTitle({ text, size, color }) {
         this.titleDiv.innerText = text;
         this.titleDiv.style.fontSize = `${size}px`;
-        this.titleDiv.style.color = color;        
+        this.titleDiv.style.color = color;
     }
 
     addOnClickListener() {
@@ -75,11 +75,24 @@ export class MapService {
             const popupContent = L.DomUtil.create('div');
             createMarkerButton(this.leafletMap, popupContent, popup, e.latlng);
             createTextButton(this.leafletMap, popupContent, popup, e.latlng);
-        
+
             popup.setLatLng(e.latlng)
                 .setContent(popupContent)
                 .openOn(this.leafletMap);
         });
+    }
+
+    loadGeoJson(geoJson, legend) {
+        const mapGeoJson = L.geoJSON(geoJson, { style: () => ({ color: legend.color }) })
+            .bindPopup(layer => `<dl>${Object.entries(layer.feature.properties)
+                .map(([key, value]) => `<dt>${key}</dt><dd>${value}</dd>`)}</dl>`)
+            .addTo(this.leafletMap);
+
+        this.leafletMap.fitBounds(mapGeoJson.getBounds());
+        this.legend.addLegends([{ color: legend.color, text: legend.text }]);
+        mapGeoJson.setStyle({ color: legend.color })
+
+        return mapGeoJson;
     }
 
 }
