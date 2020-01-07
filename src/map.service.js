@@ -10,7 +10,7 @@ import { createMarkerButton, createTextButton } from './marker';
 export class MapService {
 
     constructor() {
-        this.leafletMap = L.map('map').setView([40.5698109, 20.6563387], 7);
+        this.leafletMap = L.map('map').setView([38.5698109, 23.6563387], 7);
 
         this.addAttribution();
         this.addScale();
@@ -52,8 +52,6 @@ export class MapService {
         };
 
         northControl.addTo(this.leafletMap);
-
-        return this;
     }
 
     addTitle() {
