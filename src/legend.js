@@ -1,3 +1,5 @@
+import * as L from 'leaflet';
+
 export class Legend {
 
   constructor(map) {
@@ -11,7 +13,7 @@ export class Legend {
 
   addLegends(legendValues) {
     legendValues.forEach(value => {
-      const li = L.DomUtil.create('li', null, this.legend);
+      const li = L.DomUtil.create('li', value.type === 'Point' ? 'legend-point' : 'LineString' ? 'legend-line' : null, this.legend);
       li.innerHTML = `<span style="cursor: pointer"><i style="background-color: ${value.color}"></i> ${value.text}</span>`;
       li.onclick = e => {
         e.stopPropagation();

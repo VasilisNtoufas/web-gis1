@@ -92,6 +92,7 @@ export class MapService {
         this.legend.addLegends([{
             color: legend.color,
             text: legend.text,
+            type: geoJson.features[0].geometry.type,
             onClick: () => this.leafletMap.hasLayer(mapGeoJson) ? mapGeoJson.remove() : mapGeoJson.addTo(this.leafletMap)
         }]);
         mapGeoJson.setStyle({ color: legend.color })
