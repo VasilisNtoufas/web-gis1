@@ -9,21 +9,21 @@ export class Legend {
     this.legend = L.DomUtil.create('ul', 'list-unstyled', legendContainer);
     this.legendControl.onAdd = () => legendContainer;
     this.map = map;
+    this.legends = [];
   }
 
-  addLegends(legendValues) {
-    legendValues.forEach(value => {
-      const li = L.DomUtil.create('li', value.type === 'Point' ? 'legend-point' : 'LineString' ? 'legend-line' : null, this.legend);
-      li.innerHTML = `<span style="cursor: pointer"><i style="background-color: ${value.color}"></i> ${value.text}</span>`;
-      li.onclick = e => {
-        e.stopPropagation();
-        li.classList.toggle('text-muted');
+  addLegend(value) {
+    this.legends.push(value);
+    const li = L.DomUtil.create('li', value.type === 'Point' ? 'legend-point' : 'LineString' ? 'legend-line' : null, this.legend);
+    li.innerHTML = `<span style="cursor: pointer"><i style="background-color: ${value.color}"></i> ${value.text}</span>`;
+    li.onclick = e => {
+      e.stopPropagation();
+      li.classList.toggle('text-muted');
 
-        if (value.onClick) {
-          value.onClick();
-        }
-      };
-    });
+      if (value.onClick) {
+        value.onClick();
+      }
+    };
 
     if (!this.legendControl.getContainer()) {
       this.legendControl.addTo(this.map);

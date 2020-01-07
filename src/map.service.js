@@ -1,11 +1,13 @@
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-defaulticon-compatibility/dist/leaflet-defaulticon-compatibility.css';
+
 import * as L from 'leaflet';
 import 'leaflet-defaulticon-compatibility';
+import 'leaflet.browser.print/dist/leaflet.browser.print.min';
 
-import north from './north.png';
 import { Legend } from './legend';
 import { createMarkerButton, createTextButton } from './marker';
+import north from './north.png';
 
 export class MapService {
 
@@ -17,6 +19,7 @@ export class MapService {
         this.addNorth();
         this.addTitle();
         this.addLegend();
+        this.addPrint();
         this.addOnClickListener();
     }
 
@@ -41,26 +44,46 @@ export class MapService {
 
     addNorth() {
         const northControl = L.control();
+        this.printNorthControl = L.control();
         let img;
 
-        northControl.onAdd = () => {
+        function onNorthAdd() {
             img = L.DomUtil.create('img', 'float-right');
             img.style.width = '150px';
             img.setAttribute('src', north);
 
             return img;
         };
+        northControl.onAdd = onNorthAdd;
+        this.printNorthControl.onAdd = onNorthAdd;
 
         northControl.addTo(this.leafletMap);
     }
 
+    addPrint() {
+        L.control.browserPrint().addTo(this.leafletMap);
+        this.leafletMap.on('browser-print-start', e => {
+            this.printNorthControl.addTo(e.printMap);
+            const printLegend = new Legend(e.printMap);
+            this.legend.legends.forEach(mapLegend => printLegend.addLegend(mapLegend));
+            const printTitle = L.control({ position: 'topright' });
+            printTitle.onAdd = () => this.titleDiv;
+            printTitle.addTo(e.printMap);
+            printTitle.getContainer().parentElement.classList.add('text-center', 'w-100', 'd-flex', 'align-items-start', 'justify-content-end');
+            L.control.scale().addTo(e.printMap);
+        });
+    }
+
     addTitle() {
-        const titleControl = L.control({ position: 'topleft' });
-        this.titleDiv = L.DomUtil.create('div', 'w-25 mx-auto text-center');
+        const titleControl = L.control({ position: 'topright' });
+        this.titleDiv = L.DomUtil.create('div', 'w-25 mx-auto text-center position-absolute');
+        this.titleDiv.style.left = 0;
+        this.titleDiv.style.top = 0;
+        this.titleDiv.style.right = 0;
 
         titleControl.onAdd = () => this.titleDiv;
         titleControl.addTo(this.leafletMap);
-        titleControl.getContainer().parentElement.classList.add('text-center', 'w-100', 'd-flex', 'align-items-start');
+        titleControl.getContainer().parentElement.classList.add('text-center', 'w-100', 'd-flex', 'align-items-start', 'justify-content-end');
     }
 
     updateTitle({ text, size, color }) {
@@ -89,12 +112,12 @@ export class MapService {
             .addTo(this.leafletMap);
 
         this.leafletMap.fitBounds(mapGeoJson.getBounds());
-        this.legend.addLegends([{
+        this.legend.addLegend({
             color: legend.color,
             text: legend.text,
             type: geoJson.features[0].geometry.type,
             onClick: () => this.leafletMap.hasLayer(mapGeoJson) ? mapGeoJson.remove() : mapGeoJson.addTo(this.leafletMap)
-        }]);
+        });
         mapGeoJson.setStyle({ color: legend.color })
 
         return mapGeoJson;
