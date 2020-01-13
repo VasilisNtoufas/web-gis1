@@ -83,7 +83,11 @@ export class MapService {
     }
 
     loadGeoJson(geoJson, legend) {
-        const mapGeoJson = L.geoJSON(geoJson, { style: () => ({ color: legend.color }) })
+        const mapGeoJson = L.geoJSON(geoJson, { style: feature => {
+            const g = ({ color: feature.properties.customColor.color || legend.color });
+            console.log(g, feature.properties.eqGroup);
+            return g;
+        } })
             .bindPopup(layer => `<dl>${Object.entries(layer.feature.properties)
                 .map(([key, value]) => `<dt>${key}</dt><dd>${value}</dd>`)}</dl>`)
             .addTo(this.leafletMap);
@@ -95,9 +99,26 @@ export class MapService {
             type: geoJson.features[0].geometry.type,
             onClick: () => this.leafletMap.hasLayer(mapGeoJson) ? mapGeoJson.remove() : mapGeoJson.addTo(this.leafletMap)
         }]);
-        mapGeoJson.setStyle({ color: legend.color })
+        // mapGeoJson.setStyle({ color: legend.color })
 
         return mapGeoJson;
+    }
+
+    getColor(d) {
+        return d > 5
+            ? '#800026'
+            : d > 4
+                ? '#BD0026'
+                : d > 3
+                    ? '#E31A1C'
+                    : d > 2
+                        ? '#FC4E2A'
+                        : d > 1
+                            ? '#FD8D3C'
+                            : d > 0 ? '#FEB24C'
+                                : d > -1
+                                    ? '#FED976'
+                                    : '#FFEDA0';
     }
 
 }

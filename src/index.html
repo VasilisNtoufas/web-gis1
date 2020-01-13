@@ -35,12 +35,12 @@
             margin-right: 8px;
             opacity: 0.7;
         }
-        
+
         .legend .legend-line i {
             margin-top: 8px;
             height: 2px;
         }
-        
+
         .legend .legend-point i {
             content: url(../node_modules/leaflet/dist/images/marker-icon.png);
             background: none !important;
@@ -156,6 +156,50 @@
                     </button>
                     <button type="submit" class="btn btn-primary" form="shpForm">
                         Load
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="classificationModal" tabindex="-1" role="dialog"
+        aria-labelledby="classificationModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="classificationModalLabel">
+                        Define classes
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info" role="alert">
+                        It seems that you are loading a Polygon layer. Do you want to add gradient classes?
+                    </div>
+                    <form id="classificationForm">
+                        <div class="form-group">
+                            <label for="classCount">Number of classes</label>
+                            <input type="number" id="classCount" name="classCount" class="form-control" min="1" step="1"
+                                max="9">
+                        </div>
+                        <div class="form-group">
+                            <label for="classColorPattern">Predefined colors</label>
+                            <select class="form-control" id="classColorPattern" name="classColorPattern"></select>
+                        </div>
+
+                        <fieldset id="classFieldset">
+                            <legend>Classes</legend>
+                        </fieldset>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Skip
+                    </button>
+                    <button type="submit" class="btn btn-primary" form="classificationForm">
+                        Add classes
                     </button>
                 </div>
             </div>
