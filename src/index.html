@@ -282,9 +282,13 @@
                 </div>
                 <div class="modal-body">
                     <div class="alert alert-info" role="alert">
-                        It seems that you are loading a Polygon layer. Do you want to add gradient classes?
+                        It seems that you are loading a Polygon layer. Do you want to add layer classes?
                     </div>
                     <form id="classificationForm">
+                        <div class="form-group">
+                            <label for="classProperty">Discriminator property</label>
+                            <select class="form-control" id="classProperty" name="classProperty"></select>
+                        </div>
                         <div class="form-group">
                             <label for="classCount">Number of classes</label>
                             <input type="number" id="classCount" name="classCount" class="form-control" min="1" step="1"

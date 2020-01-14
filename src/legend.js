@@ -12,18 +12,20 @@ export class Legend {
     this.legends = [];
   }
 
-  addLegend(value) {
-    this.legends.push(value);
-    const li = L.DomUtil.create('li', value.type === 'Point' ? 'legend-point' : 'LineString' ? 'legend-line' : null, this.legend);
-    li.innerHTML = `<span style="cursor: pointer"><i style="background-color: ${value.color}"></i> ${value.text}</span>`;
-    li.onclick = e => {
-      e.stopPropagation();
-      li.classList.toggle('text-muted');
+  addLegend(values) {
+    values.forEach(value => {
+      this.legends.push(value);
+      const li = L.DomUtil.create('li', value.type === 'Point' ? 'legend-point' : 'LineString' ? 'legend-line' : null, this.legend);
+      li.innerHTML = `<span style="cursor: pointer"><i style="background-color: ${value.color}"></i> ${value.text}</span>`;
+      li.onclick = e => {
+        e.stopPropagation();
+        li.classList.toggle('text-muted');
 
-      if (value.onClick) {
-        value.onClick();
-      }
-    };
+        if (value.onClick) {
+          value.onClick();
+        }
+      };
+    });
 
     if (!this.legendControl.getContainer()) {
       this.legendControl.addTo(this.map);

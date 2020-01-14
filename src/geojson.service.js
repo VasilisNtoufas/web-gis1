@@ -7,8 +7,8 @@ export class GeoJsonService {
     }
 
     colorize(data, property, colors) {
-        data.features.sort((a, b) => b[property] - a[property])
-            .forEach((feature, index) => feature.properties.customColor = colors[Math.floor(colors.length / index)]);
+        data.features.sort((a, b) => a.properties[property] - b.properties[property])
+            .forEach((feature, index, array) => feature.properties.customColor = colors[Math.floor(index / (array.length / colors.length))]);
 
         return data;
     }

@@ -105,43 +105,49 @@ export class MapService {
         });
     }
 
-    loadGeoJson(geoJson, legend) {
-        const mapGeoJson = L.geoJSON(geoJson, { style: feature => {
-            const g = ({ color: feature.properties.customColor.color || legend.color });
-            console.log(g, feature.properties.eqGroup);
-            return g;
-        } })
+    loadGeoJson(geoJson, legendEntries) {
+        const isSingleLayer = geoJson.features.length > 0 && !geoJson.features[0].properties.customColor;
+        const layerExcludedColors = new Set();
+
+        const mapGeoJson = L.geoJSON(
+            geoJson,
+            {
+                style: feature => ({ color: feature.properties.customColor.color || legendEntries[0].color }),
+                filter: feature => isSingleLayer || !layerExcludedColors.has(feature.properties.customColor.color),
+            }
+        )
             .bindPopup(layer => `<dl>${Object.entries(layer.feature.properties)
                 .map(([key, value]) => `<dt>${key}</dt><dd>${value}</dd>`)}</dl>`)
             .addTo(this.leafletMap);
 
         this.leafletMap.fitBounds(mapGeoJson.getBounds());
-        this.legend.addLegend({
-            color: legend.color,
-            text: legend.text,
+        this.legend.addLegend(legendEntries.map(entry => ({
+            color: entry.color,
+            text: entry.text,
             type: geoJson.features[0].geometry.type,
-            onClick: () => this.leafletMap.hasLayer(mapGeoJson) ? mapGeoJson.remove() : mapGeoJson.addTo(this.leafletMap)
-        });
-        mapGeoJson.setStyle({ color: legend.color })
+            onClick: () => {
+                if (isSingleLayer) {
+                    if (this.leafletMap.hasLayer(mapGeoJson)) {
+                        mapGeoJson.remove();
+                    } else {
+                        mapGeoJson.addTo(this.leafletMap);
+                    }
+                } else {
+                    if (layerExcludedColors.has(entry.color)) {
+                        layerExcludedColors.delete(entry.color);
+                    } else {
+                        layerExcludedColors.add(entry.color);
+                    }
 
-        return mapGeoJson;
-    }
+                    mapGeoJson.clearLayers();
+                    mapGeoJson.addData(geoJson);
+                }
+            }
+        })));
 
-    getColor(d) {
-        return d > 5
-            ? '#800026'
-            : d > 4
-                ? '#BD0026'
-                : d > 3
-                    ? '#E31A1C'
-                    : d > 2
-                        ? '#FC4E2A'
-                        : d > 1
-                            ? '#FD8D3C'
-                            : d > 0 ? '#FEB24C'
-                                : d > -1
-                                    ? '#FED976'
-                                    : '#FFEDA0';
+        if (isSingleLayer) {
+            mapGeoJson.setStyle({ color: legendEntries[0].color });
+        }
     }
 
 }

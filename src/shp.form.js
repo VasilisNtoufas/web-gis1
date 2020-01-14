@@ -8,15 +8,16 @@ import { setProgress } from './progress.service';
 export class ShpForm {
 
     constructor(mapService) {
-        this.shpForm = document.querySelector('#shpForm');
-        this.shpFileInput = document.querySelector('#shpFile');
-        this.shpFileNameInput = document.querySelector('#shpTitle');
-        this.colorInput = document.querySelector('#shpColor');
+        this.shpForm = document.getElementById('shpForm');
+        this.shpFileInput = document.getElementById('shpFile');
+        this.shpFileNameInput = document.getElementById('shpTitle');
+        this.colorInput = document.getElementById('shpColor');
         this.submitHandler = this.onShpFormSubmit.bind(this);
         this.shpForm.addEventListener('submit', this.submitHandler);
         this.mapService = mapService;
         this.geoJsonService = new GeoJsonService();
-        this.classificationForm = document.querySelector('#classificationForm');
+        this.classificationForm = document.getElementById('classificationForm');
+        this.classPropertyInput = document.getElementById('classProperty');
         this.classCountInput = document.getElementById('classCount');
         this.classColorPatternInput = document.getElementById('classColorPattern');
         this.classFieldset = document.getElementById('classFieldset');
@@ -42,7 +43,7 @@ export class ShpForm {
         reader.onload = () => {
             if (reader.readyState === FileReader.DONE && !reader.error) {
                 this.geoJsonService.data(reader.result)
-                    .then(geoJson => geoJsonLayer = this.displayGeoJson(geoJson, this.shpFileNameInput.value || file.name.split('.')[0]));
+                    .then(geoJson => this.displayGeoJson(geoJson, this.shpFileNameInput.value || file.name.split('.')[0]));
             }
         };
         reader.addEventListener('progress', event => setProgress(event.loaded, event.total));
@@ -54,10 +55,13 @@ export class ShpForm {
 
         console.log(geoJson);
 
-        if (geoJson.features[0].geometry.type === 'MultiPolygon') {
-            this.askForDensityGraph(geoJson, updatedGeoJson => this.mapService.loadGeoJson(updatedGeoJson, { text: name, color: this.colorInput.value }));
+        const isMultiPolygon = geoJson.features[0].geometry.type === 'MultiPolygon';
+        const hasNumericProperties = Object.values(geoJson.features[0].properties).some(property => typeof property === 'number');
+
+        if (isMultiPolygon && hasNumericProperties) {
+            this.askForDensityGraph(geoJson, (updatedGeoJson, legend) => this.mapService.loadGeoJson(updatedGeoJson, legend));
         } else {
-            this.mapService.loadGeoJson(geoJson, { text: name, color: this.colorInput.value });
+            this.mapService.loadGeoJson(geoJson, [{ text: name, color: this.colorInput.value }]);
         }
     }
 
@@ -67,6 +71,12 @@ export class ShpForm {
             option.setAttribute('value', hue);
             option.innerHTML = hue.substring(0, hue.length - 1);
         });
+        Object.entries(geoJson.features[0].properties)
+            .filter(([, value]) => typeof value === 'number')
+            .map(([property]) => {
+                const option = L.DomUtil.create('option', null, this.classPropertyInput);
+                option.innerHTML = property;
+            })
 
         this.classColorPatternInput.value = colorbrewer.schemeGroups.singlehue[0];
         this.classColorPatternInput.addEventListener(
@@ -77,6 +87,7 @@ export class ShpForm {
 
         this.classCountInput.addEventListener('input', () => this.onClassCountChange());
         this.classCountInput.setAttribute('value', 1);
+        this.onClassCountChange();
 
         $('#classificationModal').modal('show');
 
@@ -88,8 +99,8 @@ export class ShpForm {
                     text: row.querySelector('input[type=text]').value,
                     color: row.querySelector('input[type=color]').value,
                 }));
-            const updatedGeoJson = this.geoJsonService.colorize(geoJson, 'POP', colors);
-            callback(updatedGeoJson);
+            const updatedGeoJson = this.geoJsonService.colorize(geoJson, this.classPropertyInput.value, colors);
+            callback(updatedGeoJson, colors);
         });
     }
 
