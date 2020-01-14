@@ -61,11 +61,15 @@ export class ShpForm {
         if (isMultiPolygon && hasNumericProperties) {
             this.askForDensityGraph(geoJson).then(
                 ({ geoJson: updatedGeoJson, legend }) => this.mapService.loadGeoJson(updatedGeoJson, legend),
-                () => this.mapService.loadGeoJson(geoJson, [{ text: name, color: this.colorInput.value }]),
+                () => this.loadSimpleGeoJson(geoJson, name),
             );
         } else {
-            this.mapService.loadGeoJson(geoJson, [{ text: name, color: this.colorInput.value }]);
+            this.loadSimpleGeoJson(geoJson, name);
         }
+    }
+
+    loadSimpleGeoJson(geoJson, name) {
+        this.mapService.loadGeoJson(geoJson, [{ text: `<strong>${name}</strong>`, color: this.colorInput.value }]);
     }
 
     askForDensityGraph(geoJson) {
@@ -101,12 +105,8 @@ export class ShpForm {
             this.classificationForm.addEventListener('submit', e => {
                 e.preventDefault();
                 $('#classificationModal').modal('hide');
-                const legend = Array.from(this.classFieldset.querySelectorAll('.row'))
-                    .map(row => ({
-                        text: row.querySelector('input[type=text]').value,
-                        color: row.querySelector('input[type=color]').value,
-                    }));
-                const updatedGeoJson = this.geoJsonService.colorize(geoJson, this.classPropertyInput.value, legend);
+                const legend = this.createClassLegend(geoJson, this.classPropertyInput.value);
+                const updatedGeoJson = this.colorize(geoJson, this.classPropertyInput.value, legend);
 
                 resolve({ geoJson: updatedGeoJson, legend });
             });
@@ -175,6 +175,28 @@ export class ShpForm {
         const colorBrewerIndex = classCountInputValue > 2 ? classCountInputValue : 3;   // Colorbrewer has at minimum 3 groups
 
         return colorbrewer[this.classColorPatternInput.value][colorBrewerIndex][index];
+    }
+
+    createClassLegend(data, property) {
+        data.features.sort((a, b) => a.properties[property] - b.properties[property]);
+
+        return Array.from(this.classFieldset.querySelectorAll('.row'))
+            .map((row, index, array) => {
+                const getDataIndex = legendIndex => Math.floor(legendIndex * (data.features.length / array.length));
+                const firstLegendFeature = data.features[getDataIndex(index)].properties[property];
+                const lastLegendFeature = data.features[Math.min(getDataIndex(index + 1) - 1, data.features.length - 1)].properties[property];
+                return {
+                    text: `<strong>${row.querySelector('input[type=text]').value}</strong> (${firstLegendFeature} - ${lastLegendFeature})`,
+                    color: row.querySelector('input[type=color]').value,
+                };
+            });
+    }
+
+    colorize(data, property, colors) {
+        data.features.sort((a, b) => a.properties[property] - b.properties[property])
+            .forEach((feature, index, array) => feature.properties.customColor = colors[Math.floor(index / (array.length / colors.length))]);
+
+        return data;
     }
 
 }
