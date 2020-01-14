@@ -59,48 +59,57 @@ export class ShpForm {
         const hasNumericProperties = Object.values(geoJson.features[0].properties).some(property => typeof property === 'number');
 
         if (isMultiPolygon && hasNumericProperties) {
-            this.askForDensityGraph(geoJson, (updatedGeoJson, legend) => this.mapService.loadGeoJson(updatedGeoJson, legend));
+            this.askForDensityGraph(geoJson).then(
+                ({ geoJson: updatedGeoJson, legend }) => this.mapService.loadGeoJson(updatedGeoJson, legend),
+                () => this.mapService.loadGeoJson(geoJson, [{ text: name, color: this.colorInput.value }]),
+            );
         } else {
             this.mapService.loadGeoJson(geoJson, [{ text: name, color: this.colorInput.value }]);
         }
     }
 
-    askForDensityGraph(geoJson, callback) {
-        colorbrewer.schemeGroups.singlehue.forEach(hue => {
-            const option = L.DomUtil.create('option', null, this.classColorPatternInput);
-            option.setAttribute('value', hue);
-            option.innerHTML = hue.substring(0, hue.length - 1);
-        });
-        Object.entries(geoJson.features[0].properties)
-            .filter(([, value]) => typeof value === 'number')
-            .map(([property]) => {
-                const option = L.DomUtil.create('option', null, this.classPropertyInput);
-                option.innerHTML = property;
-            })
+    askForDensityGraph(geoJson) {
+        return new Promise((resolve, reject) => {
+            colorbrewer.schemeGroups.singlehue.forEach(hue => {
+                const option = L.DomUtil.create('option', null, this.classColorPatternInput);
+                option.setAttribute('value', hue);
+                option.innerHTML = hue.substring(0, hue.length - 1);
+            });
+            Object.entries(geoJson.features[0].properties)
+                .filter(([, value]) => typeof value === 'number')
+                .map(([property]) => {
+                    const option = L.DomUtil.create('option', null, this.classPropertyInput);
+                    option.innerHTML = property;
+                })
 
-        this.classColorPatternInput.value = colorbrewer.schemeGroups.singlehue[0];
-        this.classColorPatternInput.addEventListener(
-            'input',
-            () => this.classFieldset.querySelectorAll('input[type=color]')
-                .forEach((colorInput, index) => colorInput.value = this.getColorbrewerColor(index))
-        );
+            this.classColorPatternInput.value = colorbrewer.schemeGroups.singlehue[0];
+            this.classColorPatternInput.addEventListener(
+                'input',
+                () => this.classFieldset.querySelectorAll('input[type=color]')
+                    .forEach((colorInput, index) => colorInput.value = this.getColorbrewerColor(index))
+            );
 
-        this.classCountInput.addEventListener('input', () => this.onClassCountChange());
-        this.classCountInput.setAttribute('value', 1);
-        this.onClassCountChange();
+            this.classCountInput.addEventListener('input', () => this.onClassCountChange());
+            this.classCountInput.setAttribute('value', 1);
+            this.onClassCountChange();
 
-        $('#classificationModal').modal('show');
+            document.querySelectorAll('#classificationModal button[data-dismiss="modal"]')
+                .forEach(button => button.addEventListener('click', () => reject()));
 
-        this.classificationForm.addEventListener('submit', e => {
-            e.preventDefault();
-            $('#classificationModal').modal('hide');
-            const colors = Array.from(this.classFieldset.querySelectorAll('.row'))
-                .map(row => ({
-                    text: row.querySelector('input[type=text]').value,
-                    color: row.querySelector('input[type=color]').value,
-                }));
-            const updatedGeoJson = this.geoJsonService.colorize(geoJson, this.classPropertyInput.value, colors);
-            callback(updatedGeoJson, colors);
+            $('#classificationModal').modal('show');
+
+            this.classificationForm.addEventListener('submit', e => {
+                e.preventDefault();
+                $('#classificationModal').modal('hide');
+                const legend = Array.from(this.classFieldset.querySelectorAll('.row'))
+                    .map(row => ({
+                        text: row.querySelector('input[type=text]').value,
+                        color: row.querySelector('input[type=color]').value,
+                    }));
+                const updatedGeoJson = this.geoJsonService.colorize(geoJson, this.classPropertyInput.value, legend);
+
+                resolve({ geoJson: updatedGeoJson, legend });
+            });
         });
     }
 

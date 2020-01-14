@@ -112,7 +112,7 @@ export class MapService {
         const mapGeoJson = L.geoJSON(
             geoJson,
             {
-                style: feature => ({ color: feature.properties.customColor.color || legendEntries[0].color }),
+                style: feature => ({ color: isSingleLayer ? legendEntries[0].color : feature.properties.customColor.color }),
                 filter: feature => isSingleLayer || !layerExcludedColors.has(feature.properties.customColor.color),
             }
         )
